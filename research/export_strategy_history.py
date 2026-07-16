@@ -17,7 +17,7 @@ import yfinance as yf
 MISSING_FUTU = [
     "PEP", "PFE", "PG", "PLTR", "PM", "RTX", "SBUX", "SCHW",
     "SO", "SPG", "T", "TMO", "TMUS", "TSLA", "UBER", "UNH",
-    "UNP", "UPS", "USB", "V", "VZ", "WFC", "WMT", "XOM",
+    "UNP", "UPS", "USB", "V", "VZ", "WFC", "WMT", "XOM", "HONA",
 ]
 PROBE = ["SPY", "AAPL", "TSLA", "XOM"]
 ALIASES = {"BRK.B": ["BRK-B"], "BNY": ["BNY", "BK"], "HONA": ["HONA", "HON"]}
