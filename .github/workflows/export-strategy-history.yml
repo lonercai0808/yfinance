@@ -40,7 +40,7 @@ jobs:
           python-version: "3.11"
           cache: pip
       - name: Install this yfinance fork
-        run: python -m pip install -e .
+        run: python -m pip install -e . scipy
       - name: Export a rate-limited sample
         run: >-
           python research/export_strategy_history.py
