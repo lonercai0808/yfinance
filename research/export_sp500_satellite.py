@@ -141,7 +141,6 @@ def fetch_one(
                 auto_adjust=False,
                 actions=True,
                 repair=True,
-                raise_errors=True,
             )
             normalized = normalize_history(raw, symbol, yahoo_symbol)
             if normalized.empty:
@@ -171,6 +170,7 @@ def main() -> None:
     parser.add_argument("--shard-count", type=int, default=4)
     parser.add_argument("--retries", type=int, default=3)
     parser.add_argument("--pause", type=float, default=0.35)
+    parser.add_argument("--max-symbols", type=int, default=0)
     parser.add_argument("--out-dir", required=True)
     args = parser.parse_args()
 
@@ -181,6 +181,8 @@ def main() -> None:
 
     all_symbols = load_symbol_map(source_path)
     shard = choose_shard(all_symbols, args.shard_index, args.shard_count)
+    if args.max_symbols > 0:
+        shard = shard.head(args.max_symbols).copy()
     print(
         f"shard {args.shard_index}/{args.shard_count}: {len(shard)} of "
         f"{len(all_symbols)} symbols",
@@ -211,7 +213,8 @@ def main() -> None:
         )
         print(
             f"[{ordinal:03d}/{len(shard):03d}] {row.symbol:<8} {status:<6} "
-            f"rows={len(frame)}",
+            f"rows={len(frame)}"
+            + (f" error={attempts[-1].get('error','unknown')}" if status == "failed" else ""),
             flush=True,
         )
         if ordinal < len(shard):
