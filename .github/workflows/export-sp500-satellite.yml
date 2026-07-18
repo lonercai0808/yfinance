@@ -19,6 +19,10 @@ on:
         description: Per-shard probe limit; 0 means full shard
         required: true
         default: "0"
+      symbols_file:
+        description: Repository-relative CSV with symbol and yahoo_symbol columns
+        required: true
+        default: "research/satellite_symbol_map.csv"
   push:
     branches:
       - codex-sp500-satellite-export
@@ -60,9 +64,10 @@ jobs:
           END_DATE: ${{ github.event.inputs.end || '2026-07-18' }}
           RETRIES: ${{ github.event.inputs.retries || '3' }}
           MAX_SYMBOLS: ${{ github.event.inputs.max_symbols || '0' }}
+          SYMBOLS_FILE: ${{ github.event.inputs.symbols_file || 'research/satellite_symbol_map.csv' }}
         run: |
           python research/export_sp500_satellite.py \
-            --symbols-file research/satellite_symbol_map.csv \
+            --symbols-file "$SYMBOLS_FILE" \
             --start "$START_DATE" \
             --end "$END_DATE" \
             --shard-index ${{ matrix.shard }} \
