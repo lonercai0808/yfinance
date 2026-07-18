@@ -1,0 +1,69 @@
+name: Export S&P 500 satellite history
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: Yahoo start date (warm-up included)
+        required: true
+        default: "2018-07-01"
+      end:
+        description: Yahoo-exclusive end date
+        required: true
+        default: "2026-07-18"
+  push:
+    branches:
+      - codex-sp500-satellite-export
+    paths:
+      - .github/workflows/export-sp500-satellite.yml
+      - research/export_sp500_satellite.py
+      - research/satellite_symbol_map.csv
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install fork and exporter dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Export shard
+        env:
+          START_DATE: ${{ github.event.inputs.start || '2018-07-01' }}
+          END_DATE: ${{ github.event.inputs.end || '2026-07-18' }}
+        run: |
+          python research/export_sp500_satellite.py \
+            --symbols-file research/satellite_symbol_map.csv \
+            --start "$START_DATE" \
+            --end "$END_DATE" \
+            --shard-index ${{ matrix.shard }} \
+            --shard-count 4 \
+            --retries 3 \
+            --pause 0.35 \
+            --out-dir "exports/sp500_satellite_shard_${{ matrix.shard }}"
+
+      - name: Upload shard artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sp500-satellite-shard-${{ matrix.shard }}
+          path: exports/sp500_satellite_shard_${{ matrix.shard }}
+          retention-days: 1
+          if-no-files-found: error
