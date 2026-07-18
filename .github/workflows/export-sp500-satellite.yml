@@ -11,6 +11,14 @@ on:
         description: Yahoo-exclusive end date
         required: true
         default: "2026-07-18"
+      retries:
+        description: Attempts per symbol
+        required: true
+        default: "3"
+      max_symbols:
+        description: Per-shard probe limit; 0 means full shard
+        required: true
+        default: "0"
   push:
     branches:
       - codex-sp500-satellite-export
@@ -48,6 +56,8 @@ jobs:
         env:
           START_DATE: ${{ github.event.inputs.start || '2018-07-01' }}
           END_DATE: ${{ github.event.inputs.end || '2026-07-18' }}
+          RETRIES: ${{ github.event.inputs.retries || '3' }}
+          MAX_SYMBOLS: ${{ github.event.inputs.max_symbols || '0' }}
         run: |
           python research/export_sp500_satellite.py \
             --symbols-file research/satellite_symbol_map.csv \
@@ -55,8 +65,9 @@ jobs:
             --end "$END_DATE" \
             --shard-index ${{ matrix.shard }} \
             --shard-count 4 \
-            --retries 3 \
+            --retries "$RETRIES" \
             --pause 0.35 \
+            --max-symbols "$MAX_SYMBOLS" \
             --out-dir "exports/sp500_satellite_shard_${{ matrix.shard }}"
 
       - name: Upload shard artifact
